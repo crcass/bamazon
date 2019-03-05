@@ -24,7 +24,9 @@ connection.connect(err => {
 });
 
 const displayProducts = () => {
-  console.log(chalk.bold('\n                     *** Welcome to Bamazon! ***\n'));
+  console.log(
+    chalk.bold('\n                     *** Welcome to Bamazon! ***\n')
+  );
   connection.query(
     'SELECT item_id, product_name, department_name, price, stock_quantity FROM products',
     (err, res) => {
@@ -69,7 +71,7 @@ const chooseProduct = () => {
     ])
     .then(answers => {
       connection.query(
-        `SELECT product_name, price, stock_quantity FROM products WHERE ?`,
+        `SELECT product_name, price, stock_quantity, product_sales FROM products WHERE ?`,
         {
           item_id: answers.item_id
         },
@@ -105,7 +107,9 @@ const chooseProduct = () => {
                 checkOut(
                   res[0].stock_quantity,
                   answers.quantity,
-                  res[0].product_name
+                  res[0].product_name,
+                  res[0].price,
+                  res[0].product_sales
                 );
               } else {
                 shopAgain();
@@ -116,7 +120,7 @@ const chooseProduct = () => {
     });
 };
 
-const checkOut = (stock, userQuantity, product) => {
+const checkOut = (stock, userQuantity, product, price, sales) => {
   if (stock < userQuantity) {
     console.clear();
     console.log(table(data));
@@ -128,10 +132,16 @@ const checkOut = (stock, userQuantity, product) => {
     shopAgain();
   } else {
     connection.query(
-      `UPDATE products SET stock_quantity = stock_quantity - ${userQuantity} WHERE ?`,
-      {
-        product_name: product
-      },
+      'UPDATE products SET ? WHERE ?',
+      [
+        {
+          stock_quantity: stock - userQuantity,
+          product_sales: sales + (price * userQuantity)
+        },
+        {
+          product_name: product
+        }
+      ],
       (err, res) => {
         if (err) throw err;
         console.clear();
@@ -156,6 +166,7 @@ const shopAgain = () => {
       if (answer.continue) {
         displayProducts();
       } else {
+        console.clear();
         console.log(chalk.cyan.bold('\nThanks for shopping at Bamazon!\n'));
         connection.end();
       }

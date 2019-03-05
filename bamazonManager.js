@@ -56,6 +56,7 @@ const manageProducts = () => {
           newItem();
           break;
         default:
+        console.clear();
           console.log(
             chalk.cyan.bold('Thank you for using Bamazon Management Console')
           );
@@ -223,6 +224,7 @@ const updateInventory = (stock, userQuantity, product) => {
           product_name: product
         },
         (err, res) => {
+          if (err) throw err;
           updated = [
             res[0].product_name,
             dollar.format(res[0].price),
@@ -247,73 +249,82 @@ const updateInventory = (stock, userQuantity, product) => {
 };
 
 const newItem = () => {
-  inquirer
-    .prompt([
-      {
-        type: 'input',
-        message: 'Enter item name',
-        name: 'product_name'
-      },
-      {
-        type: 'input',
-        message: 'Enter department name',
-        name: 'department_name'
-      },
-      {
-        type: 'input',
-        message: 'Enter price',
-        name: 'price'
-      },
-      {
-        type: 'input',
-        message: 'Enter stock quantity',
-        name: 'stock_quantity'
-      }
-    ])
-    .then(answers => {
-      newInventory = [
-        answers.product_name,
-        answers.department_name,
-        dollar.format(answers.price),
-        answers.stock_quantity
-      ];
-      data = [
-        [
-          chalk.bold('PRODUCT NAME'),
-          chalk.bold('DEPARTMENT'),
-          chalk.bold('PRICE'),
-          chalk.bold('QUANTITY')
-        ],
-        newInventory
-      ];
-      console.clear();
-      console.log(table(data));
-      inquirer
-        .prompt([
-          {
-            type: 'confirm',
-            message: 'Add this item to inventory?',
-            name: 'confirm'
-          }
-        ])
-        .then(ans => {
-          if (ans.confirm) {
-            connection.query(
-              'INSERT INTO products SET ?',
-              {
-                product_name: answers.product_name,
-                department_name: answers.department_name,
-                price: answers.price,
-                stock_quantity: answers.stock_quantity
-              },
-              (err, res) => {
-                console.log(chalk.cyan.bold('Product Added!'));
-                manageProducts();
-              }
-            );
-          } else {
-            manageProducts();
-          }
-        });
+  connection.query('SELECT department_name FROM departments', (err, res) => {
+    if (err) throw err;
+    departments = [];
+    res.forEach(item => {
+      departments.push(item.department_name);
     });
+    inquirer
+      .prompt([
+        {
+          type: 'input',
+          message: 'Enter item name',
+          name: 'product_name'
+        },
+        {
+          type: 'list',
+          message: 'Select department name',
+          choices: departments,
+          name: 'department_name'
+        },
+        {
+          type: 'input',
+          message: 'Enter price',
+          name: 'price'
+        },
+        {
+          type: 'input',
+          message: 'Enter stock quantity',
+          name: 'stock_quantity'
+        }
+      ])
+      .then(answers => {
+        newInventory = [
+          answers.product_name.toLowerCase(),
+          answers.department_name,
+          dollar.format(answers.price),
+          answers.stock_quantity
+        ];
+        data = [
+          [
+            chalk.bold('PRODUCT NAME'),
+            chalk.bold('DEPARTMENT'),
+            chalk.bold('PRICE'),
+            chalk.bold('QUANTITY')
+          ],
+          newInventory
+        ];
+        console.clear();
+        console.log(table(data));
+        inquirer
+          .prompt([
+            {
+              type: 'confirm',
+              message: 'Add this item to inventory?',
+              name: 'confirm'
+            }
+          ])
+          .then(ans => {
+            if (ans.confirm) {
+              connection.query(
+                'INSERT INTO products SET ?',
+                {
+                  product_name: answers.product_name.toLowerCase(),
+                  department_name: answers.department_name,
+                  price: answers.price,
+                  stock_quantity: answers.stock_quantity
+                },
+                (err, res) => {
+                  if (err) throw err;
+                  console.log(chalk.cyan.bold('Product Added!'));
+                  manageProducts();
+                }
+              );
+            } else {
+              manageProducts();
+            }
+          });
+      });
+  });
 };

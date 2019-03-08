@@ -157,7 +157,7 @@ const chooseProduct = () => {
           },
           {
             type: 'input',
-            message: 'Please enter quantity',
+            message: 'Please enter quantity to add',
             name: 'quantity'
           }
         ])

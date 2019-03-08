@@ -20,13 +20,38 @@ const dollar = new Intl.NumberFormat('en-US', {
 
 connection.connect(err => {
   if (err) throw err;
-  displayProducts();
+  customerStart();
 });
 
-const displayProducts = () => {
+const customerStart = () => {
+  console.clear();
   console.log(
     chalk.bold('\n                     *** Welcome to Bamazon! ***\n')
   );
+  inquirer
+    .prompt([
+      {
+        type: 'list',
+        message: 'Please select an option',
+        choices: ['Start Shopping', 'Exit'],
+        name: 'choice'
+      }
+    ])
+    .then(answer => {
+      if (answer.choice === 'Start Shopping') {
+        displayProducts();
+      } else {
+        console.clear();
+        console.log(chalk.cyan.bold('\nThanks for shopping at Bamazon!\n'));
+        connection.end();
+      }
+    });
+};
+
+const displayProducts = () => {
+  // console.log(
+  //   chalk.bold('\n                     *** Welcome to Bamazon! ***\n')
+  // );
   connection.query(
     'SELECT item_id, product_name, department_name, price, stock_quantity FROM products',
     (err, res) => {
@@ -136,7 +161,7 @@ const checkOut = (stock, userQuantity, product, price, sales) => {
       [
         {
           stock_quantity: stock - userQuantity,
-          product_sales: sales + (price * userQuantity)
+          product_sales: sales + price * userQuantity
         },
         {
           product_name: product

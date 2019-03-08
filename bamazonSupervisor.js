@@ -59,7 +59,7 @@ const viewOptions = () => {
 
 const displaySales = () => {
   connection.query(
-    'SELECT department_id, departments.department_name, over_head_costs, SUM(products.product_sales) AS product_sales, over_head_costs - SUM(products.product_sales) AS total_profit FROM departments LEFT JOIN products ON departments.department_name = products.department_name GROUP BY department_id, department_name, over_head_costs',
+    'SELECT department_id, departments.department_name, over_head_costs, SUM(products.product_sales) AS product_sales, SUM(products.product_sales) - over_head_costs AS total_profit FROM departments LEFT JOIN products ON departments.department_name = products.department_name GROUP BY department_id, department_name, over_head_costs',
     (err, res) => {
       if (err) throw err;
       data = [

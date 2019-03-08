@@ -1,5 +1,7 @@
 USE bamazon;
 
+DROP TABLE IF EXISTS departments;
+
 CREATE TABLE departments (
 	department_id INT NOT NULL AUTO_INCREMENT,
     department_name VARCHAR(50),
@@ -8,13 +10,13 @@ CREATE TABLE departments (
 );
 
 INSERT INTO departments (department_name, over_head_costs)
-VALUES ('electronics', 30000);
+VALUES ('electronics', 10000);
 
 INSERT INTO departments (department_name, over_head_costs)
-VALUES ('food', 8000);
+VALUES ('food', 800);
 
 INSERT INTO departments (department_name, over_head_costs)
-VALUES ('pets', 4000);
+VALUES ('pets', 400);
 
 INSERT INTO departments (department_name, over_head_costs)
-VALUES('books', 2500);
+VALUES('books', 250);
